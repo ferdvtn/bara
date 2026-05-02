@@ -116,8 +116,20 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-2 border-[#f59e0b] border-t-transparent rounded-full animate-spin" />
+      <div className="h-full overflow-y-auto pb-24 px-5 pt-8">
+        <div className="max-w-md mx-auto space-y-5 animate-pulse">
+          <div className="space-y-2 mb-6">
+            <div className="h-6 w-24 bg-[#1a1a1a] rounded-md" />
+            <div className="h-3 w-48 bg-[#1a1a1a] rounded-md" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+            <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+            <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+            <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+          </div>
+          <div className="h-64 bg-[#1a1a1a] rounded-3xl" />
+        </div>
       </div>
     );
   }
@@ -140,7 +152,7 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
           <MetricCard
             label="Total Menit"
             value={String(stats?.total_menit ?? 0)}
-            tooltip="Akumulasi total durasi semua sesi sejak pertama kali pakai app. Tidak pernah auto-reset — hanya kembali ke 0 jika kamu pakai fitur Reset Data."
+            tooltip="Akumulasi total durasi semua sesi sejak pertama kali pakai app."
             color="#f59e0b"
           />
           <MetricCard

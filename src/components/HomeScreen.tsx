@@ -10,6 +10,8 @@ import SettingsOverlay from "./SettingsOverlay";
 import {
   Dumbbell,
   PersonStanding,
+  Activity,
+  Footprints,
   Flame,
   CheckCircle2,
   AlertCircle,
@@ -45,7 +47,7 @@ const IDENTITY_TEXTS = [
 export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps) {
   const [state, setState] = useState<HomeState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedActivity, setSelectedActivity] = useState<"Push Up" | "Dumbbell" | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<"Push Up" | "Dumbbell" | "Lari" | "Jalan" | null>(null);
   const [isLogging, setIsLogging] = useState(false);
   const [toast, setToast] = useState<{ activityType: string; duration: number; newStreak: number; streakReset: boolean } | null>(null);
   const [milestoneStreak, setMilestoneStreak] = useState<number | null>(null);
@@ -132,8 +134,24 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-2 border-[#f59e0b] border-t-transparent rounded-full animate-spin" />
+      <div className="h-full overflow-y-auto pb-20 px-5 pt-4">
+        <div className="max-w-md mx-auto space-y-5 animate-pulse">
+          <div className="flex justify-between items-start">
+            <div className="space-y-2">
+              <div className="h-6 w-24 bg-[#1a1a1a] rounded-md" />
+              <div className="h-3 w-48 bg-[#1a1a1a] rounded-md" />
+            </div>
+            <div className="w-8 h-8 bg-[#1a1a1a] rounded-xl" />
+          </div>
+          <div className="h-32 bg-[#1a1a1a] rounded-3xl" />
+          <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+            <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+            <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+            <div className="h-24 bg-[#1a1a1a] rounded-3xl" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -142,11 +160,14 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
     <div className="h-full overflow-y-auto pb-20">
       <div className="max-w-md mx-auto px-5 pt-4 space-y-3">
 
-        {/* Top row: identity text + settings button */}
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-xs text-[#6b7280] italic leading-relaxed flex-1">
-            {identityText}
-          </p>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 animate-fade-in">
+          <div>
+            <h2 className="font-mono text-lg font-bold text-[#f3f4f6]">Bara 🔥</h2>
+            <p className="text-xs text-[#6b7280] mt-0.5 italic leading-relaxed">
+              {identityText}
+            </p>
+          </div>
           <button
             id="btn-settings"
             onClick={() => setShowSettings(true)}
@@ -283,6 +304,24 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
           >
             <Dumbbell size={24} strokeWidth={2} />
             <span className="text-sm font-bold">Dumbbell</span>
+          </button>
+          <button
+            id="btn-lari"
+            onClick={() => setSelectedActivity("Lari")}
+            disabled={isLogging}
+            className="btn-amber py-4 flex flex-col items-center gap-1.5 disabled:opacity-50"
+          >
+            <Activity size={24} strokeWidth={2} />
+            <span className="text-sm font-bold">Lari</span>
+          </button>
+          <button
+            id="btn-jalan"
+            onClick={() => setSelectedActivity("Jalan")}
+            disabled={isLogging}
+            className="btn-amber py-4 flex flex-col items-center gap-1.5 disabled:opacity-50"
+          >
+            <Footprints size={24} strokeWidth={2} />
+            <span className="text-sm font-bold">Jalan</span>
           </button>
         </div>
       </div>
