@@ -7,8 +7,7 @@ const pwaConfig = withPWA({
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
   disable: process.env.NODE_ENV === "development",
-  // Option A: Custom SW — diletakkan di luar folder public
-  customWorkerSrc: "worker/index.ts",
+  // next-pwa otomatis mencari custom service worker di folder "worker"
   fallbacks: {
     document: "/offline.html",
   },
