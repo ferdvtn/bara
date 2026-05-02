@@ -1,7 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, RefreshCw, X, ShieldAlert, Eye, EyeOff } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  AlertTriangle,
+  RefreshCw,
+  X,
+  ShieldAlert,
+  Eye,
+  EyeOff,
+  Bell,
+  BellOff,
+  Loader2,
+} from "lucide-react";
 
 interface SettingsOverlayProps {
   getAuthHeaders: () => Record<string, string>;
@@ -10,21 +20,119 @@ interface SettingsOverlayProps {
 }
 
 type ResetStep = "idle" | "confirm" | "entering-pin" | "loading" | "done" | "error";
+type PushStatus = "unknown" | "checking" | "enabled" | "disabled" | "unsupported" | "toggling";
 
 export default function SettingsOverlay({
   getAuthHeaders,
   onClose,
   onResetComplete,
 }: SettingsOverlayProps) {
+  // ── Reset state ──────────────────────────────────────────────────
   const [step, setStep] = useState<ResetStep>("idle");
   const [pin, setPin] = useState("");
   const [showPin, setShowPin] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [resetError, setResetError] = useState("");
 
+  // ── Push notification state ───────────────────────────────────────
+  const [pushStatus, setPushStatus] = useState<PushStatus>("checking");
+
+  useEffect(() => {
+    checkPushStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function checkPushStatus() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPushStatus("unsupported");
+      return;
+    }
+
+    // Jika di development atau SW belum terdaftar, jangan nunggu .ready selamanya
+    if (process.env.NODE_ENV === "development" && !navigator.serviceWorker.controller) {
+      setPushStatus("disabled");
+      return;
+    }
+
+    try {
+      const perm = Notification.permission;
+      if (perm === "denied") {
+        setPushStatus("disabled");
+        return;
+      }
+      // Cek apakah sudah ada subscription aktif
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      setPushStatus(sub ? "enabled" : "disabled");
+    } catch (e) {
+      console.error("Check push status error:", e);
+      setPushStatus("disabled");
+    }
+  }
+
+  async function handleEnablePush() {
+    setPushStatus("toggling");
+    try {
+      // 1. Minta permission
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") {
+        setPushStatus("disabled");
+        return;
+      }
+
+      // 2. Subscribe via PushManager
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+        ).buffer as ArrayBuffer,
+      });
+
+      // 3. Kirim subscription ke server
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+        body: JSON.stringify({ subscription: sub.toJSON() }),
+      });
+
+      if (res.ok) {
+        setPushStatus("enabled");
+      } else {
+        await sub.unsubscribe();
+        setPushStatus("disabled");
+      }
+    } catch (e) {
+      console.error("Push subscribe error:", e);
+      setPushStatus("disabled");
+    }
+  }
+
+  async function handleDisablePush() {
+    setPushStatus("toggling");
+    try {
+      // Unsubscribe dari browser
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+
+      // Hapus dari server
+      await fetch("/api/push/subscribe", {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      setPushStatus("disabled");
+    } catch (e) {
+      console.error("Push unsubscribe error:", e);
+      setPushStatus("enabled");
+    }
+  }
+
+  // ── Reset handlers ────────────────────────────────────────────────
   const handleReset = async () => {
     if (!pin) return;
     setStep("loading");
-    setErrorMsg("");
+    setResetError("");
 
     try {
       const res = await fetch("/api/reset", {
@@ -37,18 +145,17 @@ export default function SettingsOverlay({
 
       if (res.ok && data.success) {
         setStep("done");
-        // Give user 1.5s to see success, then close and refresh state
         setTimeout(() => {
           onResetComplete();
           onClose();
         }, 1500);
       } else {
-        setErrorMsg(data.error ?? "Reset gagal");
+        setResetError(data.error ?? "Reset gagal");
         setStep("error");
         setPin("");
       }
     } catch {
-      setErrorMsg("Gagal terhubung ke server");
+      setResetError("Gagal terhubung ke server");
       setStep("error");
       setPin("");
     }
@@ -63,7 +170,7 @@ export default function SettingsOverlay({
       />
 
       {/* Sheet */}
-      <div className="relative bg-[#141414] rounded-t-3xl border-t border-[#2a2a2a] animate-slide-up">
+      <div className="relative bg-[#141414] rounded-t-3xl border-t border-[#2a2a2a] animate-slide-up max-h-[90dvh] overflow-y-auto">
         {/* Handle */}
         <div className="w-10 h-1 bg-[#3a3a3a] rounded-full mx-auto mt-4 mb-1" />
 
@@ -93,7 +200,7 @@ export default function SettingsOverlay({
             </div>
           )}
 
-          {/* ===== IDLE / INFO state ===== */}
+          {/* ===== MAIN content (idle / error) ===== */}
           {(step === "idle" || step === "error") && (
             <>
               {/* App info */}
@@ -107,7 +214,56 @@ export default function SettingsOverlay({
                 </div>
               </div>
 
-              {/* Danger zone */}
+              {/* ── Push Notification Toggle ── */}
+              <div className="space-y-1">
+                <p className="text-[10px] text-[#6b7280] uppercase tracking-wider">Notifikasi</p>
+                <div className="card px-4 py-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-[#f3f4f6]">Pengingat Harian</p>
+                      <p className="text-xs text-[#6b7280] mt-0.5 leading-relaxed">
+                        {pushStatus === "unsupported"
+                          ? "Browser ini tidak mendukung push notification."
+                          : pushStatus === "enabled"
+                          ? "Aktif — kamu akan diingatkan jam 19:00 WIB jika belum log."
+                          : "Kamu akan diingatkan jam 19:00 WIB jika belum log hari itu."}
+                      </p>
+                    </div>
+
+                    {/* Toggle button */}
+                    {pushStatus === "unsupported" ? (
+                      <span className="text-[10px] text-[#4b5563] flex-shrink-0">N/A</span>
+                    ) : pushStatus === "checking" || pushStatus === "toggling" ? (
+                      <Loader2 size={18} className="text-[#6b7280] animate-spin flex-shrink-0 mt-0.5" />
+                    ) : pushStatus === "enabled" ? (
+                      <button
+                        onClick={handleDisablePush}
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#f59e0b]/15 border border-[#f59e0b]/30 text-[#f59e0b] text-xs font-semibold transition-all hover:bg-[#f59e0b]/25 active:scale-95"
+                      >
+                        <Bell size={13} strokeWidth={2} />
+                        Aktif
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleEnablePush}
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] text-[#6b7280] text-xs font-semibold transition-all hover:bg-[#222] hover:border-[#3a3a3a] active:scale-95"
+                      >
+                        <BellOff size={13} strokeWidth={2} />
+                        Nonaktif
+                      </button>
+                    )}
+                  </div>
+
+                  {/* iOS hint */}
+                  {pushStatus === "disabled" && "serviceWorker" in navigator && (
+                    <p className="text-[11px] text-[#4b5563] leading-relaxed">
+                      💡 Di iPhone/iPad: Install app dulu via Safari → &quot;Add to Home Screen&quot;, lalu aktifkan notifikasi.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* ── Danger Zone ── */}
               <div className="space-y-2">
                 <p className="text-[10px] text-[#ef4444] uppercase tracking-wider flex items-center gap-1.5">
                   <ShieldAlert size={11} />
@@ -125,12 +281,12 @@ export default function SettingsOverlay({
 
                   {step === "error" && (
                     <p className="text-xs text-[#ef4444] bg-[#2a0a0a] rounded-lg px-3 py-2">
-                      ✕ {errorMsg}
+                      ✕ {resetError}
                     </p>
                   )}
 
                   <button
-                    onClick={() => { setStep("confirm"); setErrorMsg(""); }}
+                    onClick={() => { setStep("confirm"); setResetError(""); }}
                     className="w-full py-3 rounded-xl bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#f87171] text-sm font-semibold transition-all hover:bg-[#ef4444]/20 active:scale-[0.98] flex items-center justify-center gap-2"
                   >
                     <AlertTriangle size={15} strokeWidth={2} />
@@ -153,7 +309,6 @@ export default function SettingsOverlay({
                   </p>
                 </div>
               </div>
-
               <div className="flex gap-3">
                 <button
                   onClick={() => setStep("idle")}
@@ -180,11 +335,11 @@ export default function SettingsOverlay({
                   Masukkan PIN kamu untuk mengkonfirmasi reset
                 </p>
               </div>
-
-              {/* PIN input */}
               <div className="relative">
                 <input
                   type={showPin ? "text" : "password"}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleReset()}
@@ -200,7 +355,6 @@ export default function SettingsOverlay({
                   {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-
               <div className="flex gap-3">
                 <button
                   onClick={() => { setStep("confirm"); setPin(""); }}
@@ -226,9 +380,16 @@ export default function SettingsOverlay({
               <p className="text-[#9ca3af] text-sm">Mereset data...</p>
             </div>
           )}
-
         </div>
       </div>
     </div>
   );
+}
+
+// Helper: convert VAPID public key (base64url) ke Uint8Array
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
