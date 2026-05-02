@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bara — Offline</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #0f0f0f;
+        color: #e5e7eb;
+        font-family: system-ui, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100dvh;
+        text-align: center;
+        padding: 2rem;
+      }
+      .icon { font-size: 3rem; margin-bottom: 1.5rem; }
+      h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; color: #f3f4f6; }
+      p { color: #9ca3af; font-size: 0.875rem; margin-bottom: 2rem; }
+      button {
+        background: #f59e0b;
+        color: #0f0f0f;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="icon">📡</div>
+      <h1>Butuh Koneksi Internet</h1>
+      <p>Data tidak bisa dimuat saat offline.<br />Periksa koneksimu dan coba lagi.</p>
+      <button onclick="location.reload()">Coba Lagi</button>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-bg: #0f0f0f;
+  --color-surface: #1a1a1a;
+  --color-surface-2: #242424;
+  --color-border: #2a2a2a;
+
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+
+  --color-success: #22c55e;
+  --color-success-dim: #15803d;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+
+  /* Typography — CSS vars injected by Next.js font loader on <body> */
+  --font-sans: var(--font-jakarta), system-ui, sans-serif;
+  /* Note: --font-mono is injected by Geist_Mono via body className, referenced directly */
+
+  /* Spacing */
+  --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ======================== BASE ======================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background-color: #0f0f0f;
+  color: #f3f4f6;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#__next,
+main {
+  height: 100%;
+}
+
+/* ======================== SCROLLBAR ======================== */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 2px;
+}
+
+/* ======================== ANIMATIONS ======================== */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%       { transform: translateX(-8px); }
+  30%       { transform: translateX(8px); }
+  45%       { transform: translateX(-6px); }
+  60%       { transform: translateX(6px); }
+  75%       { transform: translateX(-3px); }
+  90%       { transform: translateX(3px); }
+}
+
+@keyframes pulse-heart {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.2); opacity: 0.8; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(0); opacity: 1; }
+  to   { transform: translateY(100%); opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-scale {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes count-up {
+  0%   { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+  50%       { box-shadow: 0 0 40px rgba(245, 158, 11, 0.6); }
+}
+
+@keyframes streak-glow {
+  0%, 100% { text-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+  50%       { text-shadow: 0 0 40px rgba(245, 158, 11, 0.8), 0 0 80px rgba(249, 115, 22, 0.4); }
+}
+
+@keyframes count-up {
+  0%   { transform: translateY(30%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* ======================== UTILITY CLASSES ======================== */
+.animate-shake       { animation: shake 0.5s ease-in-out; }
+.animate-pulse-heart { animation: pulse-heart 1.2s ease-in-out infinite; }
+.animate-slide-up    { animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-slide-down  { animation: slide-down 0.3s ease-in forwards; }
+.animate-fade-in     { animation: fade-in 0.4s ease forwards; }
+.animate-fade-scale  { animation: fade-in-scale 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-glow        { animation: glow-pulse 2s ease-in-out infinite; }
+.animate-streak-glow { animation: streak-glow 3s ease-in-out infinite; }
+.animate-count-up    { animation: count-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* Font utilities — --font-mono is set as CSS var by Next.js Geist_Mono font loader */
+.font-mono { font-family: var(--font-mono), ui-monospace, monospace; }
+
+/* Amber glow text */
+.text-amber-glow {
+  color: #f59e0b;
+  text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+/* Surface card */
+.card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+}
+
+/* Amber button */
+.btn-amber {
+  background: #f59e0b;
+  color: #0f0f0f;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.btn-amber:hover  { background: #fbbf24; box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+.btn-amber:active { transform: scale(0.97); }
+
+/* Ghost button */
+.btn-ghost {
+  background: #1a1a1a;
+  color: #f3f4f6;
+  border: 1px solid #2a2a2a;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-ghost:hover  { background: #242424; border-color: #3a3a3a; }
+.btn-ghost:active { transform: scale(0.97); }
+
+/* Heatmap cell levels */
+.heat-level-0 { background: #1a1a1a; }
+.heat-level-1 { background: #78350f; } /* amber-900 dim */
+.heat-level-2 { background: #b45309; } /* amber-700 */
+.heat-level-3 { background: #f59e0b; } /* amber-500 full */
+
+/* Safe area padding */
+.pb-safe { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
