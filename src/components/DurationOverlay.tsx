@@ -3,7 +3,7 @@
 import { Timer } from "lucide-react";
 
 interface DurationOverlayProps {
-  activityType: "Push Up" | "Dumbbell" | "Lari" | "Jalan";
+  activityType: "Push Up" | "Dumbbell" | "Lari" | "Jalan" | "Senam";
   onSelect: (duration: number) => void;
   onClose: () => void;
   isLoading: boolean;

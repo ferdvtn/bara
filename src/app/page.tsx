@@ -21,6 +21,24 @@ export default function App() {
   const { userState, fetchState } = useUserState(getAuthHeaders);
   const [activeScreen, setActiveScreen] = useState<Screen>("home");
 
+  // Sync URL logic
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setActiveScreen(window.location.pathname === "/statistik" ? "stats" : "home");
+
+      const handlePopState = () => {
+        setActiveScreen(window.location.pathname === "/statistik" ? "stats" : "home");
+      };
+      window.addEventListener("popstate", handlePopState);
+      return () => window.removeEventListener("popstate", handlePopState);
+    }
+  }, []);
+
+  const handleNavigate = useCallback((screen: Screen) => {
+    setActiveScreen(screen);
+    window.history.pushState(null, "", screen === "stats" ? "/statistik" : "/");
+  }, []);
+
   // Fetch user state when authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -49,20 +67,22 @@ export default function App() {
 
   return (
     <main className="flex flex-col h-dvh bg-[#0f0f0f] overflow-hidden">
-      <div className="flex-1 min-h-0">
-        {activeScreen === "home" ? (
+      <div className="flex-1 min-h-0 relative">
+        <div className={activeScreen === "home" ? "block h-full" : "hidden"}>
           <HomeScreen getAuthHeaders={getAuthHeaders} onLogout={logout} />
-        ) : (
+        </div>
+        <div className={activeScreen === "stats" ? "block h-full" : "hidden"}>
           <StatsScreen
             getAuthHeaders={getAuthHeaders}
             onLogout={logout}
             currentStreak={userState?.current_streak ?? 0}
             longestStreak={userState?.longest_streak ?? 0}
+            isActive={activeScreen === "stats"}
           />
-        )}
+        </div>
       </div>
 
-      <BottomNav activeScreen={activeScreen} onNavigate={setActiveScreen} />
+      <BottomNav activeScreen={activeScreen} onNavigate={handleNavigate} />
     </main>
   );
 }

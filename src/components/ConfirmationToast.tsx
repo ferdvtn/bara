@@ -40,7 +40,7 @@ export default function ConfirmationToast({
         onMilestone(newStreak);
       }, 1000);
     } else {
-      timerRef.current = setTimeout(onDismiss, 2500);
+      timerRef.current = setTimeout(onDismiss, 5000);
     }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);

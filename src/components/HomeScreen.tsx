@@ -12,6 +12,7 @@ import {
   PersonStanding,
   Activity,
   Footprints,
+  Zap,
   Flame,
   CheckCircle2,
   AlertCircle,
@@ -44,12 +45,22 @@ const IDENTITY_TEXTS = [
   "Kebiasaan dibangun dari hari-hari biasa, bukan hari istimewa.",
 ];
 
-export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps) {
+export default function HomeScreen({
+  getAuthHeaders,
+  onLogout,
+}: HomeScreenProps) {
   const [state, setState] = useState<HomeState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedActivity, setSelectedActivity] = useState<"Push Up" | "Dumbbell" | "Lari" | "Jalan" | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<
+    "Push Up" | "Dumbbell" | "Lari" | "Jalan" | "Senam" | null
+  >(null);
   const [isLogging, setIsLogging] = useState(false);
-  const [toast, setToast] = useState<{ activityType: string; duration: number; newStreak: number; streakReset: boolean } | null>(null);
+  const [toast, setToast] = useState<{
+    activityType: string;
+    duration: number;
+    newStreak: number;
+    streakReset: boolean;
+  } | null>(null);
   const [milestoneStreak, setMilestoneStreak] = useState<number | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -65,15 +76,27 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
     setIsLoading(true);
     try {
       const res = await fetch("/api/state", { headers: getAuthHeaders() });
-      if (res.status === 401) { onLogout(); return; }
-      const data = await res.json() as { current_streak: number; longest_streak: number; freeze_credits: number; last_active_date: string | null };
+      if (res.status === 401) {
+        onLogout();
+        return;
+      }
+      const data = (await res.json()) as {
+        current_streak: number;
+        longest_streak: number;
+        freeze_credits: number;
+        last_active_date: string | null;
+      };
 
       // Count today's sessions
-      const statsRes = await fetch(`/api/stats?today_local=${today}`, { headers: getAuthHeaders() });
+      const statsRes = await fetch(`/api/stats?today_local=${today}`, {
+        headers: getAuthHeaders(),
+      });
       let sesi_hari_ini = 0;
       if (statsRes.ok) {
         // We infer from heatmap data
-        const statsData = await statsRes.json() as { heatmap: { date: string; jumlah_sesi: number }[] };
+        const statsData = (await statsRes.json()) as {
+          heatmap: { date: string; jumlah_sesi: number }[];
+        };
         const todayData = statsData.heatmap.find((h) => h.date === today);
         sesi_hari_ini = todayData?.jumlah_sesi ?? 0;
       }
@@ -99,21 +122,41 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
       const res = await fetch("/api/log", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-        body: JSON.stringify({ activity_type: selectedActivity, duration, today_local: today }),
+        body: JSON.stringify({
+          activity_type: selectedActivity,
+          duration,
+          today_local: today,
+        }),
       });
 
-      if (res.status === 401) { onLogout(); return; }
-      const data = await res.json() as { success: boolean; streak_reset: boolean; state: { current_streak: number; longest_streak: number; freeze_credits: number; sesi_hari_ini: number } };
+      if (res.status === 401) {
+        onLogout();
+        return;
+      }
+      const data = (await res.json()) as {
+        success: boolean;
+        streak_reset: boolean;
+        state: {
+          current_streak: number;
+          longest_streak: number;
+          freeze_credits: number;
+          sesi_hari_ini: number;
+        };
+      };
 
       if (data.success) {
-        setState((prev) => prev ? {
-          ...prev,
-          current_streak: data.state.current_streak,
-          longest_streak: data.state.longest_streak,
-          freeze_credits: data.state.freeze_credits,
-          sesi_hari_ini: data.state.sesi_hari_ini,
-          streak_was_reset: data.streak_reset,
-        } : null);
+        setState((prev) =>
+          prev
+            ? {
+                ...prev,
+                current_streak: data.state.current_streak,
+                longest_streak: data.state.longest_streak,
+                freeze_credits: data.state.freeze_credits,
+                sesi_hari_ini: data.state.sesi_hari_ini,
+                streak_was_reset: data.streak_reset,
+              }
+            : null,
+        );
 
         setToast({
           activityType: selectedActivity,
@@ -159,11 +202,12 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
   return (
     <div className="h-full overflow-y-auto pb-20">
       <div className="max-w-md mx-auto px-5 pt-4 space-y-3">
-
         {/* Header */}
         <div className="flex items-start justify-between gap-3 animate-fade-in">
           <div>
-            <h2 className="font-mono text-lg font-bold text-[#f3f4f6]">Bara 🔥</h2>
+            <h2 className="font-mono text-lg font-bold text-[#f3f4f6]">
+              Bara 🔥
+            </h2>
             <p className="text-xs text-[#6b7280] mt-0.5 italic leading-relaxed">
               {identityText}
             </p>
@@ -189,9 +233,7 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
 
         {/* B. Streak display */}
         <div className="card p-4 text-center animate-fade-in">
-          <div
-            className="font-mono text-6xl font-bold text-amber-glow animate-streak-glow leading-none"
-          >
+          <div className="font-mono text-6xl font-bold text-amber-glow animate-streak-glow leading-none">
             {state?.current_streak ?? 0}
           </div>
           <div className="flex items-center justify-center gap-1.5 text-[#9ca3af] text-sm mt-1.5">
@@ -223,7 +265,9 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
                         : "text-[#ef4444]"
                       : "text-[#3a3a3a]"
                   }`}
-                  aria-label={filled ? "Freeze credit tersedia" : "Freeze credit habis"}
+                  aria-label={
+                    filled ? "Freeze credit tersedia" : "Freeze credit habis"
+                  }
                 >
                   {isEmpty && i === 0 ? (
                     <HeartCrack size={24} strokeWidth={1.5} />
@@ -241,8 +285,8 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
               {state?.freeze_credits === 0
                 ? "Nyawa habis — jangan skip!"
                 : state?.freeze_credits === 1
-                ? "Sisa 1 nyawa — hati-hati!"
-                : `${state?.freeze_credits} freeze credit tersedia`}
+                  ? "Sisa 1 nyawa — hati-hati!"
+                  : `${state?.freeze_credits} freeze credit tersedia`}
             </p>
           </div>
         </div>
@@ -322,6 +366,15 @@ export default function HomeScreen({ getAuthHeaders, onLogout }: HomeScreenProps
           >
             <Footprints size={24} strokeWidth={2} />
             <span className="text-sm font-bold">Jalan</span>
+          </button>
+          <button
+            id="btn-senam"
+            onClick={() => setSelectedActivity("Senam")}
+            disabled={isLogging}
+            className="btn-amber col-span-2 py-4 flex flex-col items-center gap-1.5 disabled:opacity-50"
+          >
+            <Zap size={24} strokeWidth={2} />
+            <span className="text-sm font-bold">Senam</span>
           </button>
         </div>
       </div>

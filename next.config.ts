@@ -42,6 +42,14 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@libsql/client"],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/statistik',
+        destination: '/',
+      },
+    ];
+  },
 };
 
 export default pwaConfig(nextConfig);

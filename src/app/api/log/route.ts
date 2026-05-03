@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getValidatedToken } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { calculateIntensity, evaluateStreak, type UserState } from "@/lib/streak";
+import {
+  calculateIntensity,
+  evaluateStreak,
+  type UserState,
+} from "@/lib/streak";
 import { isValidDateString } from "@/utils/dates";
 
-const VALID_ACTIVITY_TYPES = ["Push Up", "Dumbbell"] as const;
+const VALID_ACTIVITY_TYPES = ["Push Up", "Dumbbell", "Lari", "Jalan", "Senam"] as const;
 const VALID_DURATIONS = [5, 10, 15, 30, 45] as const;
 
 export async function POST(req: NextRequest) {
@@ -29,22 +33,25 @@ export async function POST(req: NextRequest) {
     !(VALID_ACTIVITY_TYPES as readonly string[]).includes(activity_type)
   ) {
     return NextResponse.json(
-      { error: "Input tidak valid: activity_type harus 'Push Up' atau 'Dumbbell'" },
-      { status: 400 }
+      {
+        error:
+          "Input tidak valid: activity_type harus 'Push Up', 'Dumbbell', 'Lari', 'Jalan', atau 'Senam'",
+      },
+      { status: 400 },
     );
   }
 
   if (!duration || !(VALID_DURATIONS as readonly number[]).includes(duration)) {
     return NextResponse.json(
       { error: "Input tidak valid: duration harus 5, 10, 15, 30, atau 45" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (!today_local || !isValidDateString(today_local)) {
     return NextResponse.json(
       { error: "Input tidak valid: today_local harus format YYYY-MM-DD" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -58,7 +65,14 @@ export async function POST(req: NextRequest) {
   await db.execute({
     sql: `INSERT INTO activity_logs (id, activity_type, duration, intensity, logged_date, created_at)
           VALUES (?, ?, ?, ?, ?, ?)`,
-    args: [logId, activity_type, duration, intensity, today_local, new Date().toISOString()],
+    args: [
+      logId,
+      activity_type,
+      duration,
+      intensity,
+      today_local,
+      new Date().toISOString(),
+    ],
   });
 
   // 5. Ensure user_state row id=1 exists (idempotent — safe on every request)
@@ -67,14 +81,14 @@ export async function POST(req: NextRequest) {
 
   // 6. Fetch current user_state
   const stateResult = await db.execute(
-    "SELECT current_streak, longest_streak, freeze_credits, last_active_date FROM user_state WHERE id = 1"
+    "SELECT current_streak, longest_streak, freeze_credits, last_active_date FROM user_state WHERE id = 1",
   );
 
   const row = stateResult.rows[0];
   if (!row) {
     return NextResponse.json(
       { error: "Gagal membaca user_state. Cek koneksi database." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

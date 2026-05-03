@@ -14,9 +14,9 @@ export function useAuth() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount: restore token from sessionStorage
+  // On mount: restore token from localStorage
   useEffect(() => {
-    const storedToken = sessionStorage.getItem("auth_token");
+    const storedToken = localStorage.getItem("auth_token");
     if (storedToken) {
       setAuthState({ isAuthenticated: true, token: storedToken });
     }
@@ -38,7 +38,7 @@ export function useAuth() {
       }
 
       const { token } = data as { token: string };
-      sessionStorage.setItem("auth_token", token);
+      localStorage.setItem("auth_token", token);
       setAuthState({ isAuthenticated: true, token });
       return { success: true };
     } catch {
@@ -47,7 +47,7 @@ export function useAuth() {
   }, []);
 
   const logout = useCallback(() => {
-    sessionStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_token");
     setAuthState({ isAuthenticated: false, token: null });
   }, []);
 

@@ -15,13 +15,13 @@ export interface StreakResult {
 
 /**
  * §5.1 — Intensity calculation (server-side only)
- * duration <= 10        → 1 (Rendah)
- * duration 11–20        → 2 (Sedang)
- * duration > 20         → 3 (Tinggi)
+ * duration < 15         → 1 (Rendah)
+ * duration < 30         → 2 (Sedang)
+ * duration >= 30        → 3 (Tinggi)
  */
 export function calculateIntensity(duration: number): 1 | 2 | 3 {
-  if (duration <= 10) return 1;
-  if (duration <= 20) return 2;
+  if (duration < 15) return 1;
+  if (duration < 30) return 2;
   return 3;
 }
 

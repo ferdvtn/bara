@@ -10,12 +10,21 @@ interface StatsScreenProps {
   onLogout: () => void;
   currentStreak: number;
   longestStreak: number;
+  isActive: boolean;
+}
+
+interface TodayLog {
+  id: string;
+  activity_type: string;
+  duration: number;
+  created_at: string;
 }
 
 interface StatsData {
   total_menit: number;
   skor_disiplin: number;
   heatmap: HeatmapDay[];
+  today_logs: TodayLog[];
 }
 
 function getDisciplineLabel(score: number): string {
@@ -88,18 +97,20 @@ function MetricCard({ label, value, tooltip, color, sublabel, sublabelColor }: M
   );
 }
 
-export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, longestStreak }: StatsScreenProps) {
+export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, longestStreak, isActive }: StatsScreenProps) {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const today = getTodayLocal();
 
   useEffect(() => {
-    fetchStats();
+    if (isActive) {
+      fetchStats();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isActive]);
 
   async function fetchStats() {
-    setIsLoading(true);
+    if (!stats) setIsLoading(true);
     try {
       const res = await fetch(`/api/stats?today_local=${today}`, {
         headers: getAuthHeaders(),
@@ -177,7 +188,7 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
           />
         </div>
 
-        {/* C. Heatmap */}
+        {/* B. Heatmap */}
         <div className="card p-4 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-[#f3f4f6]">
@@ -212,6 +223,32 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
           <p className="text-[10px] mt-2" style={{ color: disciplineColor }}>
             {disciplineLabel}
           </p>
+        </div>
+
+        {/* C. Aktivitas Hari Ini */}
+        <div className="card p-4 animate-fade-in">
+          <h3 className="text-sm font-semibold text-[#f3f4f6] mb-3">
+            Aktivitas Hari Ini
+          </h3>
+          {stats?.today_logs && stats.today_logs.length > 0 ? (
+            <div className="space-y-2">
+              {stats.today_logs.map((log) => (
+                <div key={log.id} className="flex justify-between items-center bg-[#1a1a1a] rounded-xl px-3 py-2.5 border border-[#2a2a2a]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-[#f3f4f6] font-medium">{log.activity_type}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-[#f59e0b] font-bold">{log.duration} mnt</span>
+                    <span className="text-[10px] text-[#6b7280]">
+                      {new Date(log.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-[#6b7280] text-center py-2">Belum ada aktivitas hari ini.</p>
+          )}
         </div>
 
         <div className="h-4" />
