@@ -5,7 +5,7 @@ import { formatDateShort } from "@/utils/dates";
 
 export interface HeatmapDay {
   date: string;
-  intensity: 0 | 1 | 2 | 3;
+  intensity: 0 | 1 | 2 | 3 | 4;
   total_menit: number;
   jumlah_sesi: number;
 }
@@ -77,9 +77,9 @@ export default function Heatmap({ data, today }: HeatmapProps) {
     return () => document.removeEventListener("click", handler);
   }, []);
 
-  const levelClass = (intensity: 0 | 1 | 2 | 3, isFuture: boolean) => {
+  const levelClass = (intensity: 0 | 1 | 2 | 3 | 4, isFuture: boolean) => {
     if (isFuture) return "bg-[#111]";
-    return [`heat-level-0`, `heat-level-1`, `heat-level-2`, `heat-level-3`][intensity];
+    return [`heat-level-0`, `heat-level-1`, `heat-level-2`, `heat-level-3`, `heat-level-4`][intensity];
   };
 
   return (
@@ -136,7 +136,8 @@ export default function Heatmap({ data, today }: HeatmapProps) {
           { level: 0, label: "Tidak ada" },
           { level: 1, label: "5–14 mnt" },
           { level: 2, label: "15–29 mnt" },
-          { level: 3, label: "≥ 30 mnt" },
+          { level: 3, label: "30–59 mnt" },
+          { level: 4, label: "≥ 60 mnt" },
         ].map(({ level, label }) => (
           <div key={level} className="flex items-center gap-1.5">
             <div className={`w-[10px] h-[10px] rounded-[2px] flex-shrink-0 heat-level-${level}`} />

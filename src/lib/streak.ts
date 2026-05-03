@@ -19,10 +19,11 @@ export interface StreakResult {
  * duration < 30         → 2 (Sedang)
  * duration >= 30        → 3 (Tinggi)
  */
-export function calculateIntensity(duration: number): 1 | 2 | 3 {
+export function calculateIntensity(duration: number): 1 | 2 | 3 | 4 {
   if (duration < 15) return 1;
   if (duration < 30) return 2;
-  return 3;
+  if (duration < 60) return 3;
+  return 4;
 }
 
 /**

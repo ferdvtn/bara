@@ -8,8 +8,8 @@ import {
 } from "@/lib/streak";
 import { isValidDateString } from "@/utils/dates";
 
-const VALID_ACTIVITY_TYPES = ["Push Up", "Dumbbell", "Lari", "Jalan", "Senam"] as const;
-const VALID_DURATIONS = [5, 10, 15, 30, 45] as const;
+const VALID_ACTIVITY_TYPES = ["Push Up", "Dumbbell", "Lari", "Jalan", "Senam", "Bulutangkis"] as const;
+const VALID_DURATIONS = [5, 10, 15, 30, 45, 60] as const;
 
 export async function POST(req: NextRequest) {
   // 1. Validate token
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Input tidak valid: activity_type harus 'Push Up', 'Dumbbell', 'Lari', 'Jalan', atau 'Senam'",
+          "Input tidak valid: activity_type harus 'Push Up', 'Dumbbell', 'Lari', 'Jalan', 'Senam', atau 'Bulutangkis'",
       },
       { status: 400 },
     );
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   if (!duration || !(VALID_DURATIONS as readonly number[]).includes(duration)) {
     return NextResponse.json(
-      { error: "Input tidak valid: duration harus 5, 10, 15, 30, atau 45" },
+      { error: "Input tidak valid: duration harus 5, 10, 15, 30, 45, atau 60" },
       { status: 400 },
     );
   }

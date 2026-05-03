@@ -3,13 +3,13 @@
 import { Timer } from "lucide-react";
 
 interface DurationOverlayProps {
-  activityType: "Push Up" | "Dumbbell" | "Lari" | "Jalan" | "Senam";
+  activityType: "Push Up" | "Dumbbell" | "Lari" | "Jalan" | "Senam" | "Bulutangkis";
   onSelect: (duration: number) => void;
   onClose: () => void;
   isLoading: boolean;
 }
 
-const DURATIONS = [5, 10, 15, 30, 45] as const;
+const DURATIONS = [5, 10, 15, 30, 45, 60] as const;
 
 export default function DurationOverlay({
   activityType,

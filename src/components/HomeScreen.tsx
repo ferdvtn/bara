@@ -20,6 +20,7 @@ import {
   HeartCrack,
   HeartOff,
   Settings,
+  Trophy,
 } from "lucide-react";
 
 interface HomeScreenProps {
@@ -52,7 +53,7 @@ export default function HomeScreen({
   const [state, setState] = useState<HomeState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedActivity, setSelectedActivity] = useState<
-    "Push Up" | "Dumbbell" | "Lari" | "Jalan" | "Senam" | null
+    "Push Up" | "Dumbbell" | "Lari" | "Jalan" | "Senam" | "Bulutangkis" | null
   >(null);
   const [isLogging, setIsLogging] = useState(false);
   const [toast, setToast] = useState<{
@@ -371,10 +372,19 @@ export default function HomeScreen({
             id="btn-senam"
             onClick={() => setSelectedActivity("Senam")}
             disabled={isLogging}
-            className="btn-amber col-span-2 py-4 flex flex-col items-center gap-1.5 disabled:opacity-50"
+            className="btn-amber py-4 flex flex-col items-center gap-1.5 disabled:opacity-50"
           >
             <Zap size={24} strokeWidth={2} />
             <span className="text-sm font-bold">Senam</span>
+          </button>
+          <button
+            id="btn-bulutangkis"
+            onClick={() => setSelectedActivity("Bulutangkis")}
+            disabled={isLogging}
+            className="btn-amber py-4 flex flex-col items-center gap-1.5 disabled:opacity-50"
+          >
+            <Trophy size={24} strokeWidth={2} />
+            <span className="text-sm font-bold">Bulutangkis</span>
           </button>
         </div>
       </div>
