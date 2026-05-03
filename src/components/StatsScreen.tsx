@@ -114,6 +114,7 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
     try {
       const res = await fetch(`/api/stats?today_local=${today}`, {
         headers: getAuthHeaders(),
+        cache: "no-store",
       });
       if (res.status === 401) { onLogout(); return; }
       const data = await res.json() as StatsData;

@@ -131,17 +131,17 @@ export default function Heatmap({ data, today }: HeatmapProps) {
       </div>
 
       {/* Legend — labeled with duration ranges per calculateIntensity() */}
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+      <div className="mt-3 flex flex-nowrap items-center justify-between gap-1">
         {[
-          { level: 0, label: "Tidak ada" },
-          { level: 1, label: "5–14 mnt" },
-          { level: 2, label: "15–29 mnt" },
-          { level: 3, label: "30–59 mnt" },
-          { level: 4, label: "≥ 60 mnt" },
+          { level: 0, label: "0" },
+          { level: 1, label: "5m+" },
+          { level: 2, label: "15m+" },
+          { level: 3, label: "30m+" },
+          { level: 4, label: "60m+" },
         ].map(({ level, label }) => (
-          <div key={level} className="flex items-center gap-1.5">
+          <div key={level} className="flex items-center gap-1">
             <div className={`w-[10px] h-[10px] rounded-[2px] flex-shrink-0 heat-level-${level}`} />
-            <span className="text-[10px] text-[#4b5563]">{label}</span>
+            <span className="text-[9px] text-[#4b5563] whitespace-nowrap">{label}</span>
           </div>
         ))}
       </div>

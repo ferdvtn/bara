@@ -69,7 +69,11 @@ export default function App() {
     <main className="flex flex-col h-dvh bg-[#0f0f0f] overflow-hidden">
       <div className="flex-1 min-h-0 relative">
         <div className={activeScreen === "home" ? "block h-full" : "hidden"}>
-          <HomeScreen getAuthHeaders={getAuthHeaders} onLogout={logout} />
+          <HomeScreen
+            getAuthHeaders={getAuthHeaders}
+            onLogout={logout}
+            onStateChange={fetchState}
+          />
         </div>
         <div className={activeScreen === "stats" ? "block h-full" : "hidden"}>
           <StatsScreen

@@ -26,6 +26,7 @@ import {
 interface HomeScreenProps {
   getAuthHeaders: () => Record<string, string>;
   onLogout: () => void;
+  onStateChange?: () => void;
 }
 
 interface HomeState {
@@ -49,6 +50,7 @@ const IDENTITY_TEXTS = [
 export default function HomeScreen({
   getAuthHeaders,
   onLogout,
+  onStateChange,
 }: HomeScreenProps) {
   const [state, setState] = useState<HomeState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -165,6 +167,8 @@ export default function HomeScreen({
           newStreak: data.state.current_streak,
           streakReset: data.streak_reset,
         });
+        
+        if (onStateChange) onStateChange();
       }
     } catch {
       // handle silently
@@ -430,6 +434,7 @@ export default function HomeScreen({
           onResetComplete={() => {
             // Refetch state to show zeroed data
             fetchState();
+            if (onStateChange) onStateChange();
           }}
         />
       )}
