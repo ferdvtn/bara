@@ -67,15 +67,8 @@ function buildGrid(today: string, data: HeatmapDay[]): (HeatmapDay | null)[][] {
 }
 
 export default function Heatmap({ data, today }: HeatmapProps) {
-  const [tooltip, setTooltip] = useState<{ day: HeatmapDay; x: number; y: number } | null>(null);
   const grid = buildGrid(today, data);
-
-  // Close tooltip on outside tap
-  useEffect(() => {
-    const handler = () => setTooltip(null);
-    document.addEventListener("click", handler);
-    return () => document.removeEventListener("click", handler);
-  }, []);
+  // No interaction logic needed per user request
 
   const levelClass = (intensity: 0 | 1 | 2 | 3 | 4, isFuture: boolean) => {
     if (isFuture) return "bg-[#111]";
@@ -106,17 +99,11 @@ export default function Heatmap({ data, today }: HeatmapProps) {
                 const cellDay = day ?? { date: "", intensity: 0 as const, total_menit: 0, jumlah_sesi: 0 };
 
                 return (
-                  <button
+                  <div
                     key={di}
                     className={`w-[10px] h-[10px] rounded-[2px] transition-all duration-100 ${
-                      isFuture ? "bg-[#111] cursor-default" : `${levelClass(cellDay.intensity, false)} hover:ring-1 hover:ring-[#f59e0b]/50 cursor-pointer`
-                    }`}
-                    onClick={(e) => {
-                      if (isFuture || cellDay.intensity === 0) return;
-                      e.stopPropagation();
-                      const rect = (e.target as HTMLElement).getBoundingClientRect();
-                      setTooltip({ day: cellDay, x: rect.left, y: rect.top });
-                    }}
+                      isFuture ? "bg-[#111]" : `${levelClass(cellDay.intensity, false)}`
+                    } cursor-default`}
                     aria-label={
                       isFuture
                         ? "Belum tersedia"
@@ -131,7 +118,7 @@ export default function Heatmap({ data, today }: HeatmapProps) {
       </div>
 
       {/* Legend — labeled with duration ranges per calculateIntensity() */}
-      <div className="mt-3 flex flex-nowrap items-center justify-between gap-1">
+      <div className="mt-3 flex flex-nowrap items-center justify-start gap-4">
         {[
           { level: 0, label: "0" },
           { level: 1, label: "5m+" },
@@ -147,26 +134,7 @@ export default function Heatmap({ data, today }: HeatmapProps) {
       </div>
 
 
-      {/* Tooltip */}
-      {tooltip && tooltip.day.intensity > 0 && (
-        <div
-          className="fixed z-50 bg-[#242424] border border-[#3a3a3a] rounded-lg px-3 py-2 text-xs shadow-xl pointer-events-none"
-          style={{
-            top: Math.max(8, tooltip.y - 70),
-            left: Math.min(
-              tooltip.x - 60,
-              (typeof window !== "undefined" ? window.innerWidth : 300) - 150
-            ),
-          }}
-        >
-          <p className="font-semibold text-[#f3f4f6]">
-            {formatDateShort(tooltip.day.date)}
-          </p>
-          <p className="text-[#9ca3af]">
-            {tooltip.day.total_menit} menit · {tooltip.day.jumlah_sesi} sesi
-          </p>
-        </div>
-      )}
+      {/* Tooltip removed per user request */}
     </div>
   );
 }

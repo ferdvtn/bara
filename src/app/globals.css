@@ -298,7 +298,7 @@ main {
 
 /* Heatmap cell levels */
 .heat-level-0 {
-  background: #1a1a1a;
+  background: #111;
 }
 .heat-level-1 {
   background: #78350f;

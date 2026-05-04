@@ -288,9 +288,9 @@ export default function HomeScreen({
           <div className="flex-1">
             <p className="text-xs text-[#9ca3af]">
               {state?.freeze_credits === 0
-                ? "Nyawa habis — jangan skip!"
+                ? "Freeze habis — jangan skip!"
                 : state?.freeze_credits === 1
-                  ? "Sisa 1 nyawa — hati-hati!"
+                  ? "Sisa 1 freeze credit — hati-hati!"
                   : `${state?.freeze_credits} freeze credit tersedia`}
             </p>
           </div>

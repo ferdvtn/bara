@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { getTodayLocal } from "@/utils/dates";
+import { useState, useEffect, useRef } from "react";
+import { getTodayLocal, addDays, formatDateFull } from "@/utils/dates";
 import Heatmap, { type HeatmapDay } from "./Heatmap";
-import { Info, X } from "lucide-react";
+import { Info, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface StatsScreenProps {
   getAuthHeaders: () => Record<string, string>;
@@ -22,9 +22,11 @@ interface TodayLog {
 
 interface StatsData {
   total_menit: number;
+  today_menit: number;
   skor_disiplin: number;
   heatmap: HeatmapDay[];
   today_logs: TodayLog[];
+  oldest_log_date: string;
 }
 
 function getDisciplineLabel(score: number): string {
@@ -100,29 +102,39 @@ function MetricCard({ label, value, tooltip, color, sublabel, sublabelColor }: M
 export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, longestStreak, isActive }: StatsScreenProps) {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [viewDate, setViewDate] = useState(getTodayLocal());
   const today = getTodayLocal();
+  const lastFetchedDateRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isActive) {
       fetchStats();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive]);
+  }, [isActive, viewDate]);
 
   async function fetchStats() {
-    if (!stats) setIsLoading(true);
+    const isFirstLoad = !stats;
+    const isDateChange = stats && viewDate !== lastFetchedDateRef.current;
+
+    if (isFirstLoad) setIsLoading(true);
+    else if (isDateChange) setIsNavigating(true);
+
     try {
-      const res = await fetch(`/api/stats?today_local=${today}`, {
+      const res = await fetch(`/api/stats?today_local=${today}&view_date=${viewDate}`, {
         headers: getAuthHeaders(),
         cache: "no-store",
       });
       if (res.status === 401) { onLogout(); return; }
       const data = await res.json() as StatsData;
       setStats(data);
+      lastFetchedDateRef.current = viewDate;
     } catch {
       // handle silently
     } finally {
       setIsLoading(false);
+      setIsNavigating(false);
     }
   }
 
@@ -162,9 +174,9 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
         {/* A. Metric cards grid */}
         <div className="grid grid-cols-2 gap-3 animate-fade-in">
           <MetricCard
-            label="Total Menit"
-            value={String(stats?.total_menit ?? 0)}
-            tooltip="Akumulasi total durasi semua sesi sejak pertama kali pakai app."
+            label="Menit Hari Ini"
+            value={String(stats?.today_menit ?? 0)}
+            tooltip="Total durasi olahraga khusus untuk hari ini."
             color="#f59e0b"
           />
           <MetricCard
@@ -195,7 +207,6 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
             <h3 className="text-sm font-semibold text-[#f3f4f6]">
               Aktivitas 14 Minggu
             </h3>
-            <span className="text-[10px] text-[#6b7280]">Ketuk sel untuk detail</span>
           </div>
           {stats?.heatmap ? (
             <Heatmap data={stats.heatmap} today={today} />
@@ -226,12 +237,37 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
           </p>
         </div>
 
-        {/* C. Aktivitas Hari Ini */}
+        {/* C. Aktivitas */}
         <div className="card p-4 animate-fade-in">
-          <h3 className="text-sm font-semibold text-[#f3f4f6] mb-3">
-            Aktivitas Hari Ini
-          </h3>
-          {stats?.today_logs && stats.today_logs.length > 0 ? (
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-[#f3f4f6]">
+              {viewDate === today ? "Aktivitas Hari Ini" : `Aktivitas ${formatDateFull(viewDate)}`}
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setViewDate(prev => addDays(prev, -1))}
+                disabled={stats?.oldest_log_date ? viewDate <= stats.oldest_log_date : false}
+                className="p-1 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-[#6b7280] hover:text-[#f3f4f6] disabled:opacity-30 disabled:hover:text-[#6b7280] transition-colors"
+                aria-label="Previous Day"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={() => setViewDate(prev => addDays(prev, 1))}
+                disabled={viewDate >= today}
+                className="p-1 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-[#6b7280] hover:text-[#f3f4f6] disabled:opacity-30 disabled:hover:text-[#6b7280] transition-colors"
+                aria-label="Next Day"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+          {isNavigating ? (
+            <div className="space-y-2 animate-pulse">
+              <div className="h-12 bg-[#1a1a1a] rounded-xl border border-[#2a2a2a]" />
+              <div className="h-12 bg-[#1a1a1a] rounded-xl border border-[#2a2a2a]" />
+            </div>
+          ) : stats?.today_logs && stats.today_logs.length > 0 ? (
             <div className="space-y-2">
               {stats.today_logs.map((log) => (
                 <div key={log.id} className="flex justify-between items-center bg-[#1a1a1a] rounded-xl px-3 py-2.5 border border-[#2a2a2a]">
@@ -248,7 +284,7 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
               ))}
             </div>
           ) : (
-            <p className="text-xs text-[#6b7280] text-center py-2">Belum ada aktivitas hari ini.</p>
+            <p className="text-xs text-[#6b7280] text-center py-2">Belum ada aktivitas pada hari ini.</p>
           )}
         </div>
 

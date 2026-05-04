@@ -51,3 +51,24 @@ export function getDayOfYear(): number {
 export function isValidDateString(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
+
+/**
+ * Adds or subtracts days from a YYYY-MM-DD string.
+ * @param dateStr YYYY-MM-DD format
+ * @param n number of days to add (can be negative)
+ * @returns YYYY-MM-DD format
+ */
+export function addDays(dateStr: string, n: number): string {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toLocaleDateString("sv-SE");
+}
+
+/**
+ * Formats a YYYY-MM-DD string to "DD MMM YYYY" format.
+ * e.g. "2024-01-15" → "15 Jan 2024"
+ */
+export function formatDateFull(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+}

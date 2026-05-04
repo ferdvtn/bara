@@ -70,7 +70,7 @@ export default function ConfirmationToast({
             {/* Streak info */}
             {streakReset ? (
               <p className="text-xs text-[#f59e0b] mt-2 font-medium">
-                Nyawa habis. Streak baru dimulai dari 1.
+                Freeze habis. Streak baru dimulai dari 1.
               </p>
             ) : (
               <div className="flex items-center gap-1.5 mt-2">

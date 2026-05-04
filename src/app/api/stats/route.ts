@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const today_local = searchParams.get("today_local");
+  const view_date = searchParams.get("view_date") || today_local;
 
   if (!today_local || !isValidDateString(today_local)) {
     return NextResponse.json(
@@ -26,9 +27,15 @@ export async function GET(req: NextRequest) {
   const thirtyDaysAgo = getDaysAgo(30);
   const ninetyEightDaysAgo = getDaysAgo(98);
 
-  const [totalResult, activeDaysResult, heatmapResult, todayLogsResult] = await Promise.all([
+  const [totalResult, todayMenitResult, activeDaysResult, heatmapResult, todayLogsResult, oldestLogResult] = await Promise.all([
     // Total minutes lifetime
     db.execute("SELECT COALESCE(SUM(duration), 0) AS total_menit FROM activity_logs"),
+
+    // Minutes for today_local specifically
+    db.execute({
+      sql: "SELECT COALESCE(SUM(duration), 0) AS today_menit FROM activity_logs WHERE logged_date = ?",
+      args: [today_local],
+    }),
 
     // Active days in last 30 days (for discipline score)
     db.execute({
@@ -50,17 +57,21 @@ export async function GET(req: NextRequest) {
       args: [ninetyEightDaysAgo],
     }),
 
-    // Today's logs
+    // Activity logs for the specific date
     db.execute({
       sql: `SELECT id, activity_type, duration, created_at
             FROM activity_logs
             WHERE logged_date = ?
             ORDER BY created_at DESC`,
-      args: [today_local],
+      args: [view_date],
     }),
+
+    // Oldest log date
+    db.execute("SELECT MIN(logged_date) AS oldest_date FROM activity_logs"),
   ]);
 
   const total_menit = Number(totalResult.rows[0].total_menit);
+  const today_menit = Number(todayMenitResult.rows[0].today_menit);
   const hari_aktif = Number(activeDaysResult.rows[0].hari_aktif);
   const skor_disiplin = Math.round((hari_aktif / 30.0) * 100 * 10) / 10; // 1 decimal
 
@@ -81,5 +92,7 @@ export async function GET(req: NextRequest) {
     created_at: row.created_at as string,
   }));
 
-  return NextResponse.json({ total_menit, skor_disiplin, heatmap, today_logs });
+  const oldest_log_date = (oldestLogResult.rows[0]?.oldest_date as string) || today_local;
+
+  return NextResponse.json({ total_menit, today_menit, skor_disiplin, heatmap, today_logs, oldest_log_date });
 }
