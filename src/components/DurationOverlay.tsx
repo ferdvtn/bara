@@ -52,11 +52,6 @@ export default function DurationOverlay({
               className="relative w-full py-4 rounded-2xl font-semibold text-base transition-all duration-150 active:scale-[0.98] disabled:opacity-50 bg-[#1a1a1a] border border-[#2a2a2a] text-[#f3f4f6] hover:border-[#f59e0b]/40 hover:bg-[#1e1a12]"
             >
               {d} menit
-              {d === 5 && (
-                <span className="ml-2 text-[11px] font-normal text-[#6b7280]">
-                  · minimum aman
-                </span>
-              )}
             </button>
           ))}
         </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getTodayLocal, addDays, formatDateFull } from "@/utils/dates";
 import Heatmap, { type HeatmapDay } from "./Heatmap";
-import { Info, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Info, X, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 
 interface StatsScreenProps {
   getAuthHeaders: () => Record<string, string>;
@@ -11,6 +11,7 @@ interface StatsScreenProps {
   currentStreak: number;
   longestStreak: number;
   isActive: boolean;
+  onStateChange?: () => void;
 }
 
 interface TodayLog {
@@ -99,7 +100,7 @@ function MetricCard({ label, value, tooltip, color, sublabel, sublabelColor }: M
   );
 }
 
-export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, longestStreak, isActive }: StatsScreenProps) {
+export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, longestStreak, isActive, onStateChange }: StatsScreenProps) {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -135,6 +136,23 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
     } finally {
       setIsLoading(false);
       setIsNavigating(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("Hapus log aktivitas ini?")) return;
+
+    try {
+      const res = await fetch(`/api/log?id=${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        fetchStats();
+        onStateChange?.();
+      }
+    } catch {
+      alert("Gagal menghapus log.");
     }
   }
 
@@ -279,6 +297,13 @@ export default function StatsScreen({ getAuthHeaders, onLogout, currentStreak, l
                     <span className="text-[10px] text-[#6b7280]">
                       {new Date(log.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' })}
                     </span>
+                    <button
+                      onClick={() => handleDelete(log.id)}
+                      className="text-[#4b5563] hover:text-[#ef4444] transition-colors p-1"
+                      aria-label="Delete log"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </div>
               ))}

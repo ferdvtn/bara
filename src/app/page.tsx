@@ -82,6 +82,7 @@ export default function App() {
             currentStreak={userState?.current_streak ?? 0}
             longestStreak={userState?.longest_streak ?? 0}
             isActive={activeScreen === "stats"}
+            onStateChange={fetchState}
           />
         </div>
       </div>

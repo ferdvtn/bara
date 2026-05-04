@@ -134,3 +134,34 @@ export async function POST(req: NextRequest) {
     },
   });
 }
+
+export async function DELETE(req: NextRequest) {
+  const token = await getValidatedToken(req.headers.get("authorization"));
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!id) {
+    return NextResponse.json({ error: "ID wajib ada" }, { status: 400 });
+  }
+
+  const db = getDb();
+
+  try {
+    const result = await db.execute({
+      sql: "DELETE FROM activity_logs WHERE id = ?",
+      args: [id],
+    });
+
+    if (result.rowsAffected === 0) {
+      return NextResponse.json({ error: "Log tidak ditemukan" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Gagal menghapus log" }, { status: 500 });
+  }
+}
